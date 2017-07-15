@@ -5,7 +5,7 @@ import { HashRouter, Route } from 'react-router-dom';
 import Stockitem  from './Stockitem';
 // import Watchlist from './Watchlist';
 // import Brokers from './Brokers';
-import {fetchStock} from './service'; 
+import {fetchStock, getStock} from './service'; 
 import moment from 'moment';
 class App extends Component {
   constructor(props){
@@ -17,51 +17,68 @@ class App extends Component {
       name: '',
       price: '',
       volume: '',
-      fiveYearPrice: '',
-      fiveYearVolume: ''
+      oneYearPrice: '',
+      oneYearVolume: ''
     }
     this.pullStock = this.pullStock.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.handleEnter = this.handleEnter.bind(this);
+    this.handleClick = this.handleClick.bind(this);
+    this.pullOneYearStock = this.pullOneYearStock.bind(this);
   }
   
    
-    pullStock(){
-      fetchStock(this.state.sticker).then(result => {
-        const date = new Date()
-        console.log(result)
-        
-        // get Realtime (Won's show hour when market closes)
-        var timeNow = moment(date).format('YYYY-MM-D')
-        var Now = moment(date).format('HHmm')
-          if(Now > 930 && Now < 1600){
-          timeNow = moment(date).format('YYYY-MM-D HH:mm:00')
-        }
-        console.log(timeNow)
-       //GET TIME FROM 5 YEARS AGO
-        // const timePast = moment(timeNow).add(-5,'year').format('YYYY-MM-D')
-        
-        //STORE FETCHED INFORMATION IN STATE
+    pullStock( stock = this.state.sticker  ){
+
+      fetchStock( stock ).then(result => {
+        var timeUpdate = result["Meta Data"]["3. Last Refreshed"]
+        console.log(timeUpdate)
         this.setState({
           name: result["Meta Data"]["2. Symbol"].toUpperCase(),
-          //price: result["Monthly Time Series"][timeNow]["1. open"],
-          // volume: result["Time Series (Daily)"][timeNow]["5. volume"],
-          // fiveYearPrice: result["Monthly Time Series"][timePast]["1. open"],
-          // fiveYearVolume: result["Monthly Time Series"][timePast]["5. volume"]
+          price: result["Monthly Time Series"][timeUpdate]["1. open"],
+          volume: result["Monthly Time Series"][timeUpdate]["5. volume"],
+        
         })
       })
     }
 
-    
-    handleEnter(e){
-      if(e.key === 'Enter') {
+    pullOneYearStock(stock = this.state.sticker){
+      getStock(stock).then(result => {
+        var timePast = moment(result["Meta Data"]["3. Last Refreshed"]).add(-1,'year').format("YYYY-MM-D")
+                console.log(  'here' )
+
+        if (!result["Time Series (Daily)"][timePast]){
+          timePast = moment(timePast).add(-2,'day').format("YYYY-MM-D")
+          console.log(timePast)
+        console.log( result )
+
+        this.setState({
+          oneYearPrice: result["Time Series (Daily)"][timePast]["1. open"],
+          oneYearVolume: result["Time Series (Daily)"][timePast]["5. volume"]
+        })
+      } else if( result["Time Series (Daily)"][timePast] ){
+        console.log(timePast)
+        console.log( result )
+            this.setState({
+              oneYearPrice: result["Time Series (Daily)"][timePast]["1. open"],
+              oneYearVolume: result["Time Series (Daily)"][timePast]["5. volume"]
+            })
+        }
+        
+      })
+    }
+    // 2012-07-12
+    handleClick(){
+      console.log( this.state.input );
+
         this.setState({
           sticker: this.state.input,
           input: ''
         })
-        this.pullStock();
+        this.pullOneYearStock( this.state.input );
+        this.pullStock( this.state.input );
+        
       }
-    }
+    
 
     handleChange(e){
       this.setState({
@@ -71,6 +88,7 @@ class App extends Component {
 
    componentDidMount(){
      this.pullStock()
+     this.pullOneYearStock()
   }
      
   render() {
@@ -78,21 +96,28 @@ class App extends Component {
       <div className="App">
         <div className="App-header">
           <h2>Symbolist</h2>
-          <input className ="Inputbox" type="text" onChange={this.handleChange} onKeyDown={this.handleEnter}  placeholder="Enter" value={this.state.input}/>
+          <input className = "InputBox" type= "text" onChange={this.handleChange} placeholder="Enter symbol here" value={this.state.input}/>
+          <button className = "InputButton" onClick={this.handleClick} type="button"/>
+          {/*<input className ="Inputbox" type="text" onChange={this.handleChange} onKeyDown={this.handleEnter}  placeholder="Enter" value={this.state.input}/>*/}
         </div>
-        <HashRouter>
+        {/*<HashRouter>*/}
           <div>
-            <Route path='/' component={Stockitem} exact />
+            {/*<Route path='/' component={Stockitem} exact />*/}
+            <div className="row">
 
-            {this.state.name}
-            {this.state.price}
-            {this.state.volume}
-          
+            {this.state.name}<br/>
+            {parseInt(this.state.price).toFixed(2)}<br/>
+            {parseInt(this.state.volume).toFixed(2)}<br/>
+            {parseInt(this.state.oneYearPrice).toFixed(2)}<br/>
+            {parseInt(this.state.oneYearVolume).toFixed(2)}<br/>
+            {((this.state.price - this.state.oneYearPrice) / this.state.oneYearPrice).toFixed(2)}
+            </div>
+
        
           </div>
         
         
-        </HashRouter>  
+        {/*</HashRouter>  */}
 
       </div>
     );
