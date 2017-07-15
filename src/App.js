@@ -3,7 +3,7 @@ import './App.css';
 import './reset.css';
 import { HashRouter, Route } from 'react-router-dom';
 import Stockitem  from './Stockitem';
-// import Watchlist from './Watchlist';
+import Watchlist from './Watchlist';
 // import Brokers from './Brokers';
 import {fetchStock, getStock} from './service'; 
 import moment from 'moment';
@@ -29,6 +29,7 @@ class App extends Component {
   }
   
     saveStock(){
+
       let newStock = {
         sticker: this.state.sticker,
         input: this.state.input,
@@ -38,6 +39,7 @@ class App extends Component {
         oneYearPrice: this.state.oneYearPrice,
         oneYearVolume: this.state.oneYearVolume
       }
+      console.log( newStock );
 
       this.setState({
         stocks: [...this.state.stocks, newStock]
@@ -51,7 +53,7 @@ class App extends Component {
 
       fetchStock( stock ).then(result => {
         var timeUpdate = result["Meta Data"]["3. Last Refreshed"]
-        console.log(timeUpdate)
+        // console.log(timeUpdate)
         this.setState({
           name: result["Meta Data"]["2. Symbol"].toUpperCase(),
           price: result["Monthly Time Series"][timeUpdate]["1. open"],
@@ -64,20 +66,19 @@ class App extends Component {
     pullOneYearStock(stock = this.state.sticker){
       getStock(stock).then(result => {
         var timePast = moment(result["Meta Data"]["3. Last Refreshed"]).add(-1,'year').format("YYYY-MM-D")
-                console.log(  'here' )
 
         if (!result["Time Series (Daily)"][timePast]){
           timePast = moment(timePast).add(-2,'day').format("YYYY-MM-D")
-          console.log(timePast)
-        console.log( result )
+          // console.log(timePast)
+        // console.log( result )
 
         this.setState({
           oneYearPrice: result["Time Series (Daily)"][timePast]["1. open"],
           oneYearVolume: result["Time Series (Daily)"][timePast]["5. volume"]
         })
       } else if( result["Time Series (Daily)"][timePast] ){
-        console.log(timePast)
-        console.log( result )
+        // console.log(timePast)
+        // console.log( result )
             this.setState({
               oneYearPrice: result["Time Series (Daily)"][timePast]["1. open"],
               oneYearVolume: result["Time Series (Daily)"][timePast]["5. volume"]
@@ -113,46 +114,21 @@ class App extends Component {
      
   render() {
 
-    const stocks = this.state
+    
     return (
       <div className="App">
-        <div className="App-header">
-          <h2>Symbolist</h2>
-          <input className = "InputBox" type= "text" onChange={this.handleChange} placeholder="Enter symbol here" value={this.state.input}/>
-          <button className = "InputButton" onClick={this.handleClick} type="button">Enter</button>
-          {/*<input className ="Inputbox" type="text" onChange={this.handleChange} onKeyDown={this.handleEnter}  placeholder="Enter" value={this.state.input}/>*/}
-        </div>
-        {/*<HashRouter>*/}
-          <div>
-            {/*<Route path='/' component={Stockitem} exact />*/}
-            <table className="row">
-              {this.state.name}<br/>
-              {parseInt(this.state.price).toFixed(2)}<br/>
-              {parseInt(this.state.volume)}<br/>
-              {parseInt(this.state.oneYearPrice).toFixed(2)}<br/>
-              {parseInt(this.state.oneYearVolume)}<br/>
-              {((this.state.price - this.state.oneYearPrice) / this.state.oneYearPrice).toFixed(2)}<br/>
-              <button className = "SaveButton" onClick={this.saveStock} type="button">Save</button>
-            </table>
-            <ul>
-              {this.state.stocks.map((stock, index) => {
-                return <li>
-                  Symbol:{stock.name}, 
-                  Price:{stock.price}, 
-                  Volume:{stock.volume}, 
-                  1-yr Price:{stock.oneYearPrice}, 
-                  1-yr Volume:{stock.oneYearVolume}
-                  1-yr Return: {((this.state.price - this.state.oneYearPrice) / this.state.oneYearPrice).toFixed(2)}
-                  </li>
-              })}
-            </ul>
-            
 
-       
-          </div>
-        
-        
-        {/*</HashRouter>  */}
+            <div className="App-header">
+              <h2>Symbolist</h2>
+              <input className = "InputBox" type= "text" onChange={this.handleChange} placeholder="Enter symbol here" value={this.state.input}/>
+              <button className = "InputButton" onClick={this.handleClick} type="button">Enter</button>
+              {/*<input className ="Inputbox" type="text" onChange={this.handleChange} onKeyDown={this.handleEnter}  placeholder="Enter" value={this.state.input}/>*/}
+            </div>
+
+            <div>
+              <Stockitem {...this.state} saveStock={this.saveStock}/>
+              <Watchlist stocks={this.state.stocks}/>
+            </div>
 
       </div>
     );
