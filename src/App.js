@@ -12,21 +12,41 @@ class App extends Component {
     super(props);
     
     this.state = {
-      sticker: 'AAPL',
-      input: '',
-      name: '',
-      price: '',
-      volume: '',
-      oneYearPrice: '',
-      oneYearVolume: ''
+        sticker: 'AAPL',
+        input: '',
+        name: '',
+        price: '',
+        volume: '',
+        oneYearPrice: '',
+        oneYearVolume: '',
+        stocks: []
     }
+    this.saveStock = this.saveStock.bind(this);
     this.pullStock = this.pullStock.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.pullOneYearStock = this.pullOneYearStock.bind(this);
   }
   
-   
+    saveStock(){
+      let newStock = {
+        sticker: this.state.sticker,
+        input: this.state.input,
+        name: this.state.name,
+        price: this.state.price,
+        volume: this.state.volume,
+        oneYearPrice: this.state.oneYearPrice,
+        oneYearVolume: this.state.oneYearVolume
+      }
+
+      this.setState({
+        stocks: [...this.state.stocks, newStock]
+      })
+    }
+
+
+
+
     pullStock( stock = this.state.sticker  ){
 
       fetchStock( stock ).then(result => {
@@ -85,33 +105,48 @@ class App extends Component {
         input: e.target.value
       })
     }
-
+    
    componentDidMount(){
      this.pullStock()
      this.pullOneYearStock()
   }
      
   render() {
+
+    const stocks = this.state
     return (
       <div className="App">
         <div className="App-header">
           <h2>Symbolist</h2>
           <input className = "InputBox" type= "text" onChange={this.handleChange} placeholder="Enter symbol here" value={this.state.input}/>
-          <button className = "InputButton" onClick={this.handleClick} type="button"/>
+          <button className = "InputButton" onClick={this.handleClick} type="button">Enter</button>
           {/*<input className ="Inputbox" type="text" onChange={this.handleChange} onKeyDown={this.handleEnter}  placeholder="Enter" value={this.state.input}/>*/}
         </div>
         {/*<HashRouter>*/}
           <div>
             {/*<Route path='/' component={Stockitem} exact />*/}
-            <div className="row">
-
-            {this.state.name}<br/>
-            {parseInt(this.state.price).toFixed(2)}<br/>
-            {parseInt(this.state.volume).toFixed(2)}<br/>
-            {parseInt(this.state.oneYearPrice).toFixed(2)}<br/>
-            {parseInt(this.state.oneYearVolume).toFixed(2)}<br/>
-            {((this.state.price - this.state.oneYearPrice) / this.state.oneYearPrice).toFixed(2)}
-            </div>
+            <table className="row">
+              {this.state.name}<br/>
+              {parseInt(this.state.price).toFixed(2)}<br/>
+              {parseInt(this.state.volume)}<br/>
+              {parseInt(this.state.oneYearPrice).toFixed(2)}<br/>
+              {parseInt(this.state.oneYearVolume)}<br/>
+              {((this.state.price - this.state.oneYearPrice) / this.state.oneYearPrice).toFixed(2)}<br/>
+              <button className = "SaveButton" onClick={this.saveStock} type="button">Save</button>
+            </table>
+            <ul>
+              {this.state.stocks.map((stock, index) => {
+                return <li>
+                  Symbol:{stock.name}, 
+                  Price:{stock.price}, 
+                  Volume:{stock.volume}, 
+                  1-yr Price:{stock.oneYearPrice}, 
+                  1-yr Volume:{stock.oneYearVolume}
+                  1-yr Return: {((this.state.price - this.state.oneYearPrice) / this.state.oneYearPrice).toFixed(2)}
+                  </li>
+              })}
+            </ul>
+            
 
        
           </div>
