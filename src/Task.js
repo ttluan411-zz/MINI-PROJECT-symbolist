@@ -76,10 +76,11 @@ export default class Task extends Component {
      this.pullStock()
      this.pullOneYearStock()
   }
+    
   render() {
     return (
       // <HashRouter>
-      <div className="App">
+      <div className="Task">
         <div className="header">
           {/*<Header />Header*/}
         </div>

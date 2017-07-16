@@ -3,6 +3,6 @@ import './App.css';
 
 export default function(){
     return(
-          <div>About</div>
+          <div className="About">Help you create a simple stocks watch list</div>
     )
 }
