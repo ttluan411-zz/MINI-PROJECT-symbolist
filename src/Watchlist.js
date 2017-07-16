@@ -5,19 +5,32 @@ import './App.css'
 export default function Watchlist( props ){
     console.log( props )
     return (
-        <ul>
+        
+
+
+        <table className="Table">
+            <tr>
+                <th>Symbol</th>
+                <th>Price</th>
+                <th>Volume</th>
+                <th>1yr-Price</th>
+                <th>1yr-Volumn</th>
+                <th>Return</th>
+                <th>Remove</th>
+            </tr>
             {props.stocks.map((stock, index) => {
                 return(
-                 <li>
-                    Symbol:{stock.name}, 
-                    Price:{stock.price}, 
-                    Volume:{stock.volume}, 
-                    1-yr Price:{stock.oneYearPrice}, 
-                    1-yr Volume:{stock.oneYearVolume}
-                    1-yr Return: {((props.price - props.oneYearPrice) / props.oneYearPrice).toFixed(2)}
-                </li>
+                 <tr>
+                    <td>{stock.name}</td> 
+                    <td>{stock.price}</td> 
+                    <td>{stock.volume}</td>
+                    <td>{stock.oneYearPrice}</td> 
+                    <td>{stock.oneYearVolume}</td> 
+                    <td>{((props.price - props.oneYearPrice) / props.oneYearPrice).toFixed(2)}</td>
+                    <td><button>Remove</button></td>
+                </tr>
                 )
             })}
-         </ul>
+         </table>
     )
 }

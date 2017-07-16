@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import './App.css';
 import './reset.css';
 import { HashRouter, Route } from 'react-router-dom';
+import Input from './Input';
 import Stockitem  from './Stockitem';
 import Watchlist from './Watchlist';
 // import Brokers from './Brokers';
@@ -67,18 +68,13 @@ class App extends Component {
       getStock(stock).then(result => {
         var timePast = moment(result["Meta Data"]["3. Last Refreshed"]).add(-1,'year').format("YYYY-MM-D")
 
-        if (!result["Time Series (Daily)"][timePast]){
-          timePast = moment(timePast).add(-2,'day').format("YYYY-MM-D")
-          // console.log(timePast)
-        // console.log( result )
-
-        this.setState({
-          oneYearPrice: result["Time Series (Daily)"][timePast]["1. open"],
-          oneYearVolume: result["Time Series (Daily)"][timePast]["5. volume"]
-        })
-      } else if( result["Time Series (Daily)"][timePast] ){
-        // console.log(timePast)
-        // console.log( result )
+          if (!result["Time Series (Daily)"][timePast]){
+            timePast = moment(timePast).add(-2,'day').format("YYYY-MM-D")
+            this.setState({
+              oneYearPrice: result["Time Series (Daily)"][timePast]["1. open"],
+              oneYearVolume: result["Time Series (Daily)"][timePast]["5. volume"]
+            })
+          } else if( result["Time Series (Daily)"][timePast] ){
             this.setState({
               oneYearPrice: result["Time Series (Daily)"][timePast]["1. open"],
               oneYearVolume: result["Time Series (Daily)"][timePast]["5. volume"]
@@ -87,7 +83,6 @@ class App extends Component {
         
       })
     }
-    // 2012-07-12
     handleClick(){
       console.log( this.state.input );
 
@@ -97,34 +92,22 @@ class App extends Component {
         })
         this.pullOneYearStock( this.state.input );
         this.pullStock( this.state.input );
-        
       }
-    
-
     handleChange(e){
       this.setState({
         input: e.target.value
       })
     }
-    
    componentDidMount(){
      this.pullStock()
      this.pullOneYearStock()
   }
-     
   render() {
-
-    
     return (
+      
       <div className="App">
-
-            <div className="App-header">
-              <h2>Symbolist</h2>
-              <input className = "InputBox" type= "text" onChange={this.handleChange} placeholder="Enter symbol here" value={this.state.input}/>
-              <button className = "InputButton" onClick={this.handleClick} type="button">Enter</button>
-              {/*<input className ="Inputbox" type="text" onChange={this.handleChange} onKeyDown={this.handleEnter}  placeholder="Enter" value={this.state.input}/>*/}
-            </div>
-
+        {/*<Header />*/}
+        <Input handleClick={this.handleClick} handleChange={this.handleChange} />
             <div>
               <Stockitem {...this.state} saveStock={this.saveStock}/>
               <Watchlist stocks={this.state.stocks}/>
