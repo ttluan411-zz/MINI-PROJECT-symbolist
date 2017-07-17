@@ -7,14 +7,14 @@ import Watchlist from './Watchlist';
 import moment from 'moment';
 import Header from './Header';
 import route from './Router';
-import './App.css';
+import './main.css';
 import './reset.css';
 
 export default class Task extends Component {
   constructor(props){
     super(props);
     this.state = {
-        sticker: 'AAPL',
+        sticker: '',
         input: '',
         name: '',
         price: '',
@@ -26,29 +26,46 @@ export default class Task extends Component {
     this.saveStock = this.saveStock.bind(this);
     this.pullStock = this.pullStock.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.handleClick = this.handleClick.bind(this);
+    this.handleEnter = this.handleEnter.bind(this);
     this.pullOneYearStock = this.pullOneYearStock.bind(this);
+    this.handleDelete = this.handleDelete.bind(this);
   }
     saveStock(){
       const newStock = {...this.state}
       delete newStock.stocks
         this.setState({
-          stocks: [...this.state.stocks, newStock]
+          stocks: [...this.state.stocks, newStock],
+          sticker: '',
+          input: '',
+          name: '',
+          price: '',
+          volume: '',
+          oneYearPrice: '',
+          oneYearVolume: ''
         })
     }
     pullStock( stock = this.state.sticker ){
       fetchStock( stock ).then(result => {
-        var timeUpdate = result["Meta Data"]["3. Last Refreshed"]
+        if(result["Error Message"]) {
+          alert("Yo! it aint sticker")
+        } else {
+           var timeUpdate = result["Meta Data"]["3. Last Refreshed"]
         // console.log(timeUpdate)
         this.setState({
           name: result["Meta Data"]["2. Symbol"].toUpperCase(),
           price: result["Monthly Time Series"][timeUpdate]["1. open"],
           volume: result["Monthly Time Series"][timeUpdate]["5. volume"],
         })
+        }
+        
       })
     }
     pullOneYearStock(stock = this.state.sticker){
       getStock(stock).then(result => {
+        if(result["Error Message"]) {
+          alert("Yo! it aint sticker")
+        } else {
+        console.log(result)
         var timePast = moment(result["Meta Data"]["3. Last Refreshed"]).add(-1,'year').format("YYYY-MM-D")
           if (!result["Time Series (Daily)"][timePast]){
             timePast = moment(timePast).add(-2,'day').format("YYYY-MM-D")
@@ -62,36 +79,50 @@ export default class Task extends Component {
               oneYearVolume: result["Time Series (Daily)"][timePast]["5. volume"]
             })
         }
+        }
       })
     }
-    handleClick(){
-        this.setState({ sticker: this.state.input, input: '' })
-        this.pullOneYearStock( this.state.input );
-        this.pullStock( this.state.input );
+    handleEnter(e){
+      if (e.key ==='Enter'){
+          this.setState({ 
+            sticker: this.state.input, 
+            input: '' 
+          })
+          this.pullOneYearStock( this.state.input );
+          this.pullStock( this.state.input );
+        }
       }
     handleChange(e){
       this.setState({input: e.target.value})
     }
-   componentDidMount(){
-     this.pullStock()
-     this.pullOneYearStock()
-  }
+  //  componentDidMount(){
+  //    this.pullStock()
+  //    this.pullOneYearStock()
+  // }
+    handleDelete(index){
+      const newStocks = [...this.state.stocks]
+      newStocks.splice(index,1);
+      this.setState({
+        stocks: newStocks
+      })      
+    }
     
   render() {
     return (
-      // <HashRouter>
       <div className="Task">
-        <div className="header">
-          {/*<Header />Header*/}
-        </div>
-        <Input handleClick={this.handleClick} handleChange={this.handleChange} />
-            <div>
+        <div className="top">
+        <Input handleEnter={this.handleEnter} input={this.state.input} handleChange={this.handleChange} />
+            {!this.state.sticker ? null : 
               <Stockitem {...this.state} saveStock={this.saveStock}/>
-              <Watchlist stocks={this.state.stocks}/>
-            </div>
-            {/*{route}*/}
+            }
+          </div>
+          <div className="bottom">
+              {
+                this.state.stocks.length === 0 ? null : 
+              <Watchlist stocks={this.state.stocks} handleDelete={this.handleDelete}/>
+              }
+          </div>
       </div>
-      // </HashRouter>
-    );
+    )
   }
 }
